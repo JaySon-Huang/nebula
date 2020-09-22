@@ -17,6 +17,9 @@ ExternalProject_Add(
     SOURCE_DIR ${source_dir}
     CMAKE_ARGS
         ${common_cmake_args}
+        -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON
+        -DOPENSSL_ROOT_DIR=${OPENSSL_ROOT_DIR}
+        -DGTEST_ROOT=${CMAKE_CURRENT_BINARY_DIR}/googletest/source
         -DCMAKE_BUILD_TYPE=Release
         -DBUILD_EXAMPLES=OFF
         -DBUILD_SHARED_LIBS=OFF

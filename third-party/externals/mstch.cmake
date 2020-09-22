@@ -17,6 +17,7 @@ ExternalProject_Add(
     SOURCE_DIR ${source_dir}
     CMAKE_ARGS
         ${common_cmake_args}
+        "-DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS} -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -I/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include -I/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include -I${CMAKE_INSTALL_PREFIX}/include ${extra_cpp_flags}"
     BUILD_COMMAND make -s -j${BUILDING_JOBS_NUM}
     BUILD_IN_SOURCE 1
     INSTALL_COMMAND make -s install -j${BUILDING_JOBS_NUM}

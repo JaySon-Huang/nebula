@@ -1,14 +1,11 @@
-# Copyright (c) 2019 vesoft inc. All rights reserved.
-#
-# This source code is licensed under Apache 2.0 License,
-# attached with Common Clause Condition 1.0, found in the LICENSES directory.
-
-set(name libunwind)
+#https://github.com/jedisct1/libsodium/archive/1.0.18.tar.gz
+set(name sodium)
 set(source_dir ${CMAKE_CURRENT_BINARY_DIR}/${name}/source)
 ExternalProject_Add(
     ${name}
-    URL https://github.com/libunwind/libunwind/releases/download/v1.2.1/libunwind-1.2.1.tar.gz
-    URL_HASH MD5=06ba9e60d92fd6f55cd9dadb084df19e
+    URL https://download.libsodium.org/libsodium/releases/libsodium-1.0.18-stable.tar.gz
+    URL_HASH MD5=93ea1d37a769b041c3e3849a00542f1d
+    DOWNLOAD_NAME sodium-1.0.18-stable.tar.gz
     PREFIX ${CMAKE_CURRENT_BINARY_DIR}/${name}
     TMP_DIR ${BUILD_INFO_DIR}
     STAMP_DIR ${BUILD_INFO_DIR}
@@ -17,11 +14,9 @@ ExternalProject_Add(
     CONFIGURE_COMMAND
         ${common_configure_envs}
         ./configure ${common_configure_args}
-                    --disable-minidebuginfo
-                    --disable-shared --enable-static
-    BUILD_COMMAND make -s -j${BUILDING_JOBS_NUM}
+    BUILD_COMMAND make -s
     BUILD_IN_SOURCE 1
-    INSTALL_COMMAND make -s install -j${BUILDING_JOBS_NUM}
+    INSTALL_COMMAND make -s install
     LOG_CONFIGURE TRUE
     LOG_BUILD TRUE
     LOG_INSTALL TRUE

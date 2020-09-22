@@ -20,7 +20,8 @@ ExternalProject_Add(
     INSTALL_COMMAND make BINDIR=/bin SBINDIR=/sbin
                          SHAREDIR=/share MANDIR=/man
                          INCLUDEDIR=/include LIBDIR=/lib
-                         CFLAGS=-fPIC NO_SOLIB=1 DESTDIR=${CMAKE_INSTALL_PREFIX}
+                         "CFLAGS=-fPIC -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -I/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include"
+                         NO_SOLIB=1 DESTDIR=${CMAKE_INSTALL_PREFIX}
                          install
     LOG_CONFIGURE TRUE
     LOG_BUILD TRUE

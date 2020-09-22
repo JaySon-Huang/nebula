@@ -7,9 +7,9 @@ set(name folly)
 set(source_dir ${CMAKE_CURRENT_BINARY_DIR}/${name}/source)
 ExternalProject_Add(
     ${name}
-    URL https://github.com/facebook/folly/archive/v2018.08.20.00.tar.gz
-    URL_HASH MD5=1260231dd088526297ec52e3e12bf0ee
-    DOWNLOAD_NAME folly-2018-08-20.tar.gz
+    URL https://github.com/facebook/folly/archive/v2020.01.06.00.tar.gz
+    URL_HASH MD5=28c6c55fcab1bcab8434b8768432600d
+    DOWNLOAD_NAME folly-2020-01-06.tar.gz
     PREFIX ${CMAKE_CURRENT_BINARY_DIR}/${name}
     TMP_DIR ${BUILD_INFO_DIR}
     STAMP_DIR ${BUILD_INFO_DIR}
@@ -18,7 +18,10 @@ ExternalProject_Add(
     CMAKE_ARGS
         ${common_cmake_args}
         -DCMAKE_BUILD_TYPE=Release
-        "-DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS} -fPIC -DFOLLY_HAVE_CLOCK_GETTIME -D__USE_POSIX199309 ${extra_cpp_flags}"
+        -DBoost_USE_STATIC_RUNTIME=ON
+        -DBOOST_ROOT=${CMAKE_INSTALL_PREFIX}
+        -DOPENSSL_ROOT_DIR=${CMAKE_INSTALL_PREFIX}
+        "-DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS} -fPIC -DFOLLY_HAVE_CLOCK_GETTIME -D__USE_POSIX199309 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -I/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include -I/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include ${extra_cpp_flags}"
         -DFOLLY_CXX_FLAGS=-Wno-error
 
     BUILD_COMMAND make -s -j${BUILDING_JOBS_NUM}

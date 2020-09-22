@@ -6,11 +6,13 @@
 set(name boost)
 set(source_dir ${CMAKE_CURRENT_BINARY_DIR}/${name}/source)
 get_filename_component(compiler_path ${CMAKE_CXX_COMPILER} DIRECTORY)
+# Need boost >= 1.69 to build in MacOS X
+# See https://github.com/boostorg/atomic/issues/15 for details
 ExternalProject_Add(
     ${name}
-    URL https://dl.bintray.com/boostorg/release/1.67.0/source/boost_1_67_0.tar.gz
-    URL_HASH MD5=4850fceb3f2222ee011d4f3ea304d2cb
-    DOWNLOAD_NAME boost-1.67.0.tar.gz
+    URL https://dl.bintray.com/boostorg/release/1.74.0/source/boost_1_74_0.tar.gz
+    URL_HASH MD5=3c8fb92ce08b9ad5a5f0b35731ac2c8e
+    DOWNLOAD_NAME boost-1.74.0.tar.gz
     PREFIX ${CMAKE_CURRENT_BINARY_DIR}/${name}
     TMP_DIR ${BUILD_INFO_DIR}
     STAMP_DIR ${BUILD_INFO_DIR}
@@ -30,7 +32,8 @@ ExternalProject_Add(
             --disable-icu
             include=${CMAKE_INSTALL_PREFIX}/include
             linkflags=-L${CMAKE_INSTALL_PREFIX}/lib
-            "cxxflags=-fPIC ${extra_cpp_flags}"
+            "cxxflags=-fPIC -isystem ${CMAKE_INSTALL_PREFIX}/include -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -I/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include ${extra_cpp_flags}"
+            "cflags=-fPIC -isystem ${CMAKE_INSTALL_PREFIX}/include -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -I/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include ${extra_cpp_flags}"
             runtime-link=static
             link=static
             variant=release

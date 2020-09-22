@@ -49,14 +49,14 @@ set(BUILD_INFO_DIR ${CMAKE_CURRENT_BINARY_DIR}/build-info)
 set(BUILDING_PATH "${CMAKE_INSTALL_PREFIX}/bin:${CMAKE_INSTALL_PREFIX}/sbin:$ENV{PATH}")
 set(ACLOCAL_PATH "${CMAKE_INSTALL_PREFIX}/share/aclocal:${CMAKE_INSTALL_PREFIX}/share/aclocal-1.15")
 
-set(extra_link_libs "-static-libstdc++ -static-libgcc")
+#set(extra_link_libs "-static-libstdc++ -static-libgcc")
 if (${DISABLE_CXX11_ABI})
     set(extra_cpp_flags "-D_GLIBCXX_USE_CXX11_ABI=0")
 else()
     set(extra_cpp_flags "-D_GLIBCXX_USE_CXX11_ABI=1")
 endif()
 
-if(GLIBC_VERSION VERSION_LESS 2.17)
+if(GLIBC_VERSION VERSION_LESS 2.17 AND NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set(extra_link_libs "${extra_link_libs} -lrt")
 endif()
 
@@ -80,20 +80,22 @@ set(common_configure_envs
     "env"
     "CC=${CMAKE_C_COMPILER}"
     "CXX=${CMAKE_CXX_COMPILER}"
-    "CFLAGS=${CMAKE_C_FLAGS} -fno-omit-frame-pointer -fPIC -O2 -D_DEFAULT_SOURCE -D_GNU_SOURCE ${extra_cpp_flags}"
-    "CXXFLAGS=${CMAKE_CXX_FLAGS} -fno-omit-frame-pointer -fPIC -O2 -D_DEFAULT_SOURCE -D_GNU_SOURCE ${extra_cpp_flags}"
-    "CPPFLAGS=-isystem ${CMAKE_INSTALL_PREFIX}/include ${extra_cpp_flags}"
-    "LDFLAGS=-L${CMAKE_INSTALL_PREFIX}/lib -L${CMAKE_INSTALL_PREFIX}/lib64 ${extra_link_libs}"
+    "CFLAGS=${CMAKE_C_FLAGS} -fno-omit-frame-pointer -fPIC -O2 -D_DEFAULT_SOURCE -D_GNU_SOURCE -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -I/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include ${extra_cpp_flags}"
+    "CXXFLAGS=${CMAKE_CXX_FLAGS} -fno-omit-frame-pointer -fPIC -O2 -D_DEFAULT_SOURCE -D_GNU_SOURCE -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -I/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include ${extra_cpp_flags}"
+    "CPPFLAGS=-isystem ${CMAKE_INSTALL_PREFIX}/include -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -I/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include ${extra_cpp_flags}"
+    "LDFLAGS=-L${CMAKE_INSTALL_PREFIX}/lib -L${CMAKE_INSTALL_PREFIX}/lib64 -L/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib ${extra_link_libs}"
     "PATH=${BUILDING_PATH}"
     "ACLOCAL_PATH=${ACLOCAL_PATH}"
 )
 
 set(ALL_TARGETS
-    libunwind
+    # libunwind is not need
+    #libunwind
     openssl
     libevent
-    keyutils
-    krb5
+    # Seems that keyutils is not need in MacOS X?
+    #keyutils
+    #krb5
     jemalloc
     bzip2
     zstd
@@ -101,7 +103,8 @@ set(ALL_TARGETS
     snappy
     lzma
     lz4
-    libaio
+    # libaio is not available in MacOS X
+    #libaio
     mstch
     gperf
     fatal
@@ -111,7 +114,11 @@ set(ALL_TARGETS
     glog
     boost
     rocksdb
+    fmt
     folly
+    sodium
+    fizz
+    yarpl
     wangle
     proxygen
     fbthrift
@@ -165,6 +172,14 @@ if (NOT Gettext_FOUND)
     list(APPEND ALL_TARGETS gettext)
 endif()
 
+# include (cmake/find_ssl.cmake)
+# if (NOT OPENSSL_FOUND)
+#     message (FATAL_ERROR "Need openssl for build. debian tip: sudo apt install libssl-dev")
+# endif ()
+
+# message(STATUS "OPENSSL_ROOT_DIR: ${OPENSSL_ROOT_DIR}")
+
+
 foreach(target ${ALL_TARGETS})
     include(externals/${target}.cmake)
     list(APPEND CLEAN_TARGETS ${target}-clean)
@@ -201,15 +216,17 @@ maybe_add_dependencies(glog gflags)
 maybe_add_dependencies(s2geometry googletest glog openssl)
 
 maybe_add_dependencies(krb5 keyutils openssl gettext bison)
-maybe_add_dependencies(folly glog boost double-conversion openssl libevent lzma zstd snappy lz4 libunwind libaio)
-maybe_add_dependencies(wangle folly)
-maybe_add_dependencies(fbthrift folly krb5 bison flex mstch zlib zstd wangle fatal)
+maybe_add_dependencies(folly glog boost double-conversion openssl libevent lzma zstd snappy lz4 libunwind libaio fmt sodium)
+maybe_add_dependencies(fizz sodium folly)
+maybe_add_dependencies(wangle folly fizz)
+maybe_add_dependencies(yarpl double-conversion openssl gflags fmt)
+maybe_add_dependencies(fbthrift folly krb5 bison flex mstch zlib zstd wangle fatal yarpl)
 maybe_add_dependencies(proxygen wangle libunwind gperf)
 maybe_add_dependencies(rocksdb snappy zlib zstd bzip2 lz4 lzma libunwind)
 
 # RocksDB has its own copy of gtest, which may conflict with ours
 # Here we build gtest after rocksdb intentionally
-maybe_add_dependencies(googletest rocksdb gflags)
+maybe_add_dependencies(googletest rocksdb gflags proxygen)
 
 add_custom_command(
     TARGET zstd POST_BUILD
@@ -225,12 +242,12 @@ add_custom_command(
         rm -rf ${CMAKE_INSTALL_PREFIX}/lib/librocksdb.so*
 )
 
-add_custom_target(
-    strip-archives ALL
-    COMMAND
-        strip --strip-unneeded ${CMAKE_INSTALL_PREFIX}/lib/*.a
-    DEPENDS ${ALL_TARGETS}
-)
+# add_custom_target(
+#     strip-archives ALL
+#     COMMAND
+#         strip --strip-unneeded ${CMAKE_INSTALL_PREFIX}/lib/*.a
+#     DEPENDS ${ALL_TARGETS}
+# )
 
 add_custom_target(
     clean-all
