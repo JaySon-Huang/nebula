@@ -199,7 +199,7 @@ FileType FileUtils::fileType(const char* path) {
 }
 
 
-int64_t FileUtils::fileLastUpdateTime(const char* path) {
+time_t FileUtils::fileLastUpdateTime(const char* path) {
     struct stat st;
     if (lstat(path, &st)) {
         // Failed to get file stat

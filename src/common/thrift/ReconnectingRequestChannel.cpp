@@ -22,6 +22,9 @@
 namespace apache {
 namespace thrift {
 
+#ifndef __APPLE__
+// These are hooks for old version fbthrift, ignore for MacOS X.
+
 class ReconnectingRequestChannel::RequestCallback
     : public apache::thrift::RequestCallback {
  public:
@@ -88,5 +91,7 @@ ReconnectingRequestChannel::Impl& ReconnectingRequestChannel::impl() {
 
   return *impl_;
 }
+#endif
+
 }  // namespace thrift
 }  // namespace apache

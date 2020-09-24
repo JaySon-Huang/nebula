@@ -7,6 +7,10 @@
 #include "base/Base.h"
 #include "thread/NamedThread.h"
 
+#ifdef __APPLE__
+#include <pthread.h>
+#endif
+
 namespace nebula {
 namespace thread {
 
@@ -15,7 +19,13 @@ namespace detail {
 class TLSThreadID {
 public:
     TLSThreadID() {
+#ifndef __APPLE__
         tid_ = ::syscall(SYS_gettid);
+#else
+        uint64_t tid;
+        pthread_threadid_np(NULL, &tid);
+        tid_ = tid;
+#endif
     }
 
     ~TLSThreadID() {
